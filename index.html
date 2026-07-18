@@ -61,18 +61,22 @@ a:hover { text-decoration: underline; }
 .album-chip .name { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
 .album-chip .meta { color: #888; }
 @media (max-width: 768px) {
-  .track-album, .col-album, .col-year, .col-bpm, .col-dur { display: none; }
   table { display: block; }
   thead { display: none; }
   tbody { display: block; }
-  tr { display: flex; flex-wrap: wrap; padding: 12px 8px; border-bottom: 1px solid #1a1a1a; align-items: baseline; gap: 4px 8px; }
-  tr:hover { background: #1a1a1a; }
-  td { display: inline; padding: 0; border: none; font-size: 14px; }
-  .col-num { font-size: 12px; color: #1DB954; font-weight: 700; min-width: 36px; }
-  .col-title { flex: 1; min-width: 60%; font-size: 15px; white-space: normal; overflow: visible; }
+  tr { display: block; padding: 14px 12px; border-bottom: 1px solid #222; margin-bottom: 2px; background: #181818; border-radius: 8px; }
+  tr:hover { background: #1e1e1e; }
+  td { display: inline; padding: 0; border: none; font-size: 14px; overflow: visible; white-space: normal; }
+  .col-num { display: inline; font-size: 12px; color: #1DB954; font-weight: 700; margin-right: 8px; }
+  .col-title { display: inline; font-size: 15px; font-weight: 600; }
   .col-title a { white-space: normal; }
-  .col-artist { width: 100%; font-size: 13px; color: #b3b3b3; white-space: normal; overflow: visible; }
-  .col-added { font-size: 11px; color: #555; margin-left: auto; }
+  .col-artist { display: block; font-size: 13px; color: #b3b3b3; margin-top: 4px; }
+  .col-album { display: block; font-size: 12px; color: #555; margin-top: 2px; font-style: italic; }
+  .col-year, .col-bpm, .col-dur, .col-added { display: inline; font-size: 11px; color: #666; margin-right: 10px; }
+  .mobile-meta { display: flex !important; gap: 12px; margin-top: 6px; flex-wrap: wrap; }
+  .mobile-meta span { font-size: 11px; color: #888; }
+  .mobile-meta .bpm { color: #1DB954; font-weight: 700; }
+  .mobile-meta .label { color: #555; margin-right: 2px; }
   .artist-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
   .album-grid { grid-template-columns: 1fr; }
   .header h1 { font-size: 1.4rem; }
@@ -349,6 +353,10 @@ function renderTable(data) {
       '<td class="col-bpm">' + bpmStr + '</td>' +
       '<td class="col-dur">' + t.duration + '</td>' +
       '<td class="col-added added">' + t.added_at + '</td>' +
+      '<td class="mobile-meta" style="display:none"><span><span class="label">Year:</span> ' + year + '</span>' +
+      (t.bpm ? '<span><span class="label">BPM:</span> <span class="bpm">' + Math.round(t.bpm) + '</span></span>' : '') +
+      '<span><span class="label">Dur:</span> ' + t.duration + '</span>' +
+      '<span><span class="label">Added:</span> ' + t.added_at + '</span></td>' +
       '</tr>';
   }).join('');
   tb.innerHTML = rows;
