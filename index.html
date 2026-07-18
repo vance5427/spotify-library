@@ -23,11 +23,19 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .filters { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
 .filters select { background: #282828; color: #fff; border: 1px solid #333; border-radius: 20px; padding: 8px 16px; font-size: 13px; }
 .count { color: #b3b3b3; font-size: 13px; margin-bottom: 12px; }
-table { width: 100%; border-collapse: collapse; }
-th { text-align: left; color: #b3b3b3; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; padding: 8px 12px; border-bottom: 1px solid #333; position: sticky; top: 0; background: #121212; cursor: pointer; white-space: nowrap; }
+table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+th { text-align: left; color: #b3b3b3; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; padding: 8px 12px; border-bottom: 1px solid #333; position: sticky; top: 0; background: #121212; cursor: pointer; white-space: nowrap; z-index: 1; }
 th:hover { color: #1DB954; }
-td { padding: 10px 12px; border-bottom: 1px solid #1a1a1a; font-size: 14px; }
+td { padding: 10px 12px; border-bottom: 1px solid #1a1a1a; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 tr:hover { background: #1a1a1a; }
+.col-num { width: 40px; }
+.col-title { width: 25%; }
+.col-artist { width: 20%; }
+.col-album { width: 20%; }
+.col-year { width: 55px; }
+.col-bpm { width: 55px; }
+.col-dur { width: 65px; }
+.col-added { width: 95px; }
 .track-title { font-weight: 600; }
 .track-artist { color: #b3b3b3; }
 .track-album { color: #666; font-size: 13px; }
@@ -135,7 +143,7 @@ a:hover { text-decoration: underline; }
     </div>
     <div class="count" id="count"></div>
     <table>
-      <thead><tr><th>#</th><th>Title</th><th>Artist</th><th class="col-album">Album</th><th>Year</th><th>BPM</th><th>Duration</th><th>Added</th></tr></thead>
+      <thead><tr><th class="col-num">#</th><th class="col-title">Title</th><th class="col-artist">Artist</th><th class="col-album">Album</th><th class="col-year">Year</th><th class="col-bpm">BPM</th><th class="col-dur">Duration</th><th class="col-added">Added</th></tr></thead>
       <tbody id="tbody"></tbody>
     </table>
   </div>
@@ -158,14 +166,14 @@ function renderTable(data) {
     const year = t.release_date ? t.release_date.substring(0,4) : '';
     const bpmStr = t.bpm ? '<span class="bpm">' + Math.round(t.bpm) + '</span>' : '—';
     return '<tr>' +
-      '<td>' + (i+1) + '</td>' +
-      '<td class="track-title"><a href="' + t.spotify_url + '" target="_blank">' + t.title + '</a></td>' +
-      '<td class="track-artist">' + t.artist + '</td>' +
-      '<td class="track-album col-album">' + t.album + '</td>' +
-      '<td>' + year + '</td>' +
-      '<td>' + bpmStr + '</td>' +
-      '<td>' + t.duration + '</td>' +
-      '<td class="added">' + t.added_at + '</td>' +
+      '<td class="col-num">' + (i+1) + '</td>' +
+      '<td class="col-title track-title"><a href="' + t.spotify_url + '" target="_blank" title="' + t.title.replace(/"/g,'&quot;') + '">' + t.title + '</a></td>' +
+      '<td class="col-artist track-artist" title="' + t.artist.replace(/"/g,'&quot;') + '">' + t.artist + '</td>' +
+      '<td class="col-album track-album" title="' + t.album.replace(/"/g,'&quot;') + '">' + t.album + '</td>' +
+      '<td class="col-year">' + year + '</td>' +
+      '<td class="col-bpm">' + bpmStr + '</td>' +
+      '<td class="col-dur">' + t.duration + '</td>' +
+      '<td class="col-added added">' + t.added_at + '</td>' +
       '</tr>';
   }).join('');
   tb.innerHTML = rows;
