@@ -236,13 +236,13 @@ function renderActiveFilters(){
   if(albumFilter)html+='<span class="filter-tag" onclick="clearArtistFilter()">Album: '+esc(albumFilter)+' &times;</span> ';
   el.innerHTML=html;
 }
-function filterByArtist(name){artistFilter=name;albumFilter='';switchTab('songs');applyFilters();}
-function filterByAlbum(name){albumFilter=name;artistFilter='';switchTab('songs');applyFilters();}
+function filterByArtist(nameOrEl){var name=typeof nameOrEl==='string'?nameOrEl:(nameOrEl&&nameOrEl.dataset?nameOrEl.dataset.v:nameOrEl);artistFilter=name;albumFilter='';switchTab('songs');applyFilters();}
+function filterByAlbum(nameOrEl){var name=typeof nameOrEl==='string'?nameOrEl:(nameOrEl&&nameOrEl.dataset?nameOrEl.dataset.v:nameOrEl);albumFilter=name;artistFilter='';switchTab('songs');applyFilters();}
 function clearArtistFilter(){artistFilter='';albumFilter='';applyFilters();}
 function esc(s){if(!s)return'';var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 function renderTable(){
   var start=page*perPage,end=Math.min(start+perPage,filtered.length);
-  var html='<table><thead><tr><th onclick="setSort('n')">Song #</th><th>Art</th><th onclick="setSort('t')">Title</th><th onclick="setSort('a')">Artist</th><th>Album</th><th>Genre</th><th>Key</th><th onclick="setSort('b')">BPM</th><th onclick="setSort('y')">Year</th><th>Duration</th><th onclick="setSort('ad')">Added</th><th>Language</th></tr></thead><tbody>';
+  var html='<table><thead><tr><th onclick="setSort(\'n\')">Song #</th><th>Art</th><th onclick="setSort(\'t\')">Title</th><th onclick="setSort(\'a\')">Artist</th><th>Album</th><th>Genre</th><th>Key</th><th onclick="setSort(\'b\')">BPM</th><th onclick="setSort(\'y\')">Year</th><th>Duration</th><th onclick="setSort(\'ad\')">Added</th><th>Language</th></tr></thead><tbody>';
   for(var i=start;i<end;i++){
     var s=filtered[i];
     var img=s.i?'<img src="'+coverUrl(s.i,56)+'" width="40" height="40" loading="lazy" alt="">':'';
@@ -252,7 +252,7 @@ function renderTable(){
     html+='<td data-label="#">'+s.n+'</td>';
     html+='<td class="art-cell">'+img+'</td>';
     html+='<td data-label="Title"><a href="'+spLink+'" target="_blank" onclick="event.stopPropagation()">'+esc(s.t)+'</a></td>';
-    html+='<td data-label="Artist"><span class="artist-link" onclick="event.stopPropagation();filterByArtist(''+esc(s.a).replace(/'/g,"\'")+'')">'+esc(s.a)+'</span></td>';
+    html+='<td data-label="Artist"><span class="artist-link" onclick="event.stopPropagation();filterByArtist(this.dataset.v)" data-v="'+esc(s.a)+'">'+esc(s.a)+'</span></td>';
     html+='<td data-label="Album">'+esc(s.al)+'</td>';
     html+='<td data-label="Genre">'+esc(s.g||'')+'</td>';
     html+='<td data-label="Key">'+keyCam+'</td>';
@@ -309,7 +309,7 @@ function showModal(num){
   html+='<a href="https://en.wikipedia.org/wiki/Special:Search?search='+encodeURIComponent(s.t+' '+s.a)+'" target="_blank">📖 Wikipedia</a>';
   html+='<a href="https://www.youtube.com/results?search_query='+encodeURIComponent(s.t+' '+s.a)+'" target="_blank">▶️ YouTube</a>';
   html+='<a href="https://genius.com/search?q='+encodeURIComponent(s.t+' '+s.a)+'" target="_blank">📝 Genius Lyrics</a>';
-  if(s.b&&s.cm)html+='<a href="#" onclick="event.preventDefault();closeModal();switchTab('dj');djSelectSong('+s.n+')">🎧 DJ Mix</a>';
+  if(s.b&&s.cm)html+='<a href="#" onclick="event.preventDefault();closeModal();switchTab(&quot;dj&quot;);djSelectSong('+s.n+')">🎧 DJ Mix</a>';
   html+='</div>';
   document.getElementById('modal-content').innerHTML=html;
   document.getElementById('modal').classList.add('show');
@@ -340,7 +340,7 @@ function buildArtists(){
   sorted.forEach(function(e){
     var name=e[0],cnt=e[1],hash=arts[name];
     var img=hash?artistUrl(hash):'';
-    html+='<div class="card artist-card" data-name="'+esc(name).toLowerCase()+'" onclick="filterByArtist(''+esc(name).replace(/'/g,"\'")+'')">';
+    html+='<div class="card artist-card" data-name="'+esc(name).toLowerCase()+'" onclick="filterByArtist(this.dataset.v)" data-v="'+esc(name)+'">';
     if(img)html+='<img src="'+img+'" width="80" height="80" loading="lazy" alt="">';
     html+='<div class="name" title="'+esc(name)+'">'+esc(name)+'</div>';
     html+='<div class="sub">'+cnt+' song'+(cnt>1?'s':'')+'</div></div>';
@@ -366,7 +366,7 @@ function buildAlbums(){
   var html='<div class="controls"><input type="text" id="album-search" placeholder="Search albums..." oninput="filterAlbumCards()"></div><div class="grid" id="album-grid">';
   sorted.forEach(function(al){
     var img=al.hash?coverUrl(al.hash,250):'';
-    html+='<div class="card" data-name="'+esc(al.name).toLowerCase()+' '+esc(al.artist).toLowerCase()+'" onclick="filterByAlbum(''+esc(al.name).replace(/'/g,"\'")+'')">';
+    html+='<div class="card" data-name="'+esc(al.name).toLowerCase()+' '+esc(al.artist).toLowerCase()+'" onclick="filterByAlbum(this.dataset.v)" data-v="'+esc(al.name)+'">';
     if(img)html+='<img src="'+img+'" width="120" height="120" loading="lazy" alt="">';
     html+='<div class="name" title="'+esc(al.name)+'">'+esc(al.name)+'</div>';
     html+='<div class="sub">'+esc(al.artist)+'</div>';
