@@ -87,7 +87,7 @@ tr{cursor:pointer}
   tr{background:#282828;margin-bottom:8px;border-radius:8px;padding:12px;border-bottom:none}
   td{padding:2px 0;border:none;font-size:0.85em;display:flex;justify-content:space-between}
   td:before{content:attr(data-label);color:#b3b3b3;font-weight:bold;margin-right:8px}
-  .art-cell{display:none}
+  .art-cell{display:flex;justify-content:center}
   .controls{flex-direction:column}
   .controls input,.controls select{width:100%}
   .grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}
@@ -134,6 +134,9 @@ tr{cursor:pointer}
 <option value="y-asc">Year (oldest)</option>
 <option value="ad-desc">Recently Added</option>
 <option value="dc-desc">Danceability (high)</option>
+<option value="dc-asc">Danceability (low)</option>
+<option value="ac-desc">Acousticness (high)</option>
+<option value="ac-asc">Acousticness (low)</option>
 </select>
 </div>
 <div id="active-filters"></div>
@@ -243,27 +246,18 @@ function clearArtistFilter(){artistFilter='';albumFilter='';applyFilters();}
 function esc(s){if(!s)return'';var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 function renderTable(){
   var start=page*perPage,end=Math.min(start+perPage,filtered.length);
-  var html='<table><thead><tr><th onclick="setSort(\'n\')">#</th><th>Art</th><th onclick="setSort(\'t\')">Title</th><th onclick="setSort(\'a\')">Artist</th><th>Album</th><th>Genre</th><th>Key</th><th onclick="setSort(\'b\')">BPM</th><th onclick="setSort(\'dc\')">Dance</th><th onclick="setSort(\'ac\')">Acoustic</th><th onclick="setSort(\'y\')">Year</th><th>Dur</th><th onclick="setSort(\'ad\')">Added</th><th>Lang</th><th>Country</th></tr></thead><tbody>';
+  var html='<table><thead><tr><th>Art</th><th onclick="setSort(\'t\')">Title</th><th onclick="setSort(\'a\')">Artist</th><th onclick="setSort(\'b\')">BPM</th><th>Key</th><th onclick="setSort(\'y\')">Year</th></tr></thead><tbody>';
   for(var i=start;i<end;i++){
     var s=filtered[i];
     var spLink=s.u?spUrl(s.u):'#';
     var keyCam=(s.k||'')+(s.cm?' / '+s.cm:'');
     html+='<tr onclick="showModal('+s.n+')">';
-    html+='<td data-label="#">'+s.n+'</td>';
     html+='<td class="art-cell">'+artImg(s,56)+'</td>';
-    html+='<td data-label="Title"><a href="'+spLink+'" target="_blank" onclick="event.stopPropagation()">'+esc(s.t)+'</a></td>';
+    html+='<td data-label="Title"><a href="'+spLink+'" target="_blank" onclick="event.stopPropagation()">'+esc(s.t)+'</a><div style="color:#b3b3b3;font-size:0.8em">'+esc(s.al)+'</div></td>';
     html+='<td data-label="Artist"><span class="artist-link" onclick="event.stopPropagation();filterByArtist(this.dataset.v)" data-v="'+esc(s.a)+'">'+esc(s.a)+'</span></td>';
-    html+='<td data-label="Album">'+esc(s.al)+'</td>';
-    html+='<td data-label="Genre">'+esc(s.g||'')+'</td>';
-    html+='<td data-label="Key">'+keyCam+'</td>';
     html+='<td data-label="BPM">'+(s.b||'')+'</td>';
-    html+='<td data-label="Dance">'+(s.dc!=null?s.dc:'')+'</td>';
-    html+='<td data-label="Acoustic">'+(s.ac!=null?s.ac:'')+'</td>';
+    html+='<td data-label="Key">'+keyCam+'</td>';
     html+='<td data-label="Year">'+(s.y||'')+'</td>';
-    html+='<td data-label="Dur">'+(s.d||'')+'</td>';
-    html+='<td data-label="Added">'+(s.ad||'')+'</td>';
-    html+='<td data-label="Lang">'+(s.lang||'')+'</td>';
-    html+='<td data-label="Country">'+(s.ctry||'')+'</td>';
     html+='</tr>';
   }
   html+='</tbody></table>';
