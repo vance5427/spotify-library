@@ -31,6 +31,7 @@ tr{cursor:pointer}
 .art-cell img{width:40px;height:40px;border-radius:4px;display:block}
 .artist-link{color:#b3b3b3;cursor:pointer}
 .artist-link:hover{color:#1DB954;text-decoration:underline}
+.album-sub{display:block;color:#b3b3b3;font-size:0.8em}
 .pagination{display:flex;justify-content:center;gap:8px;margin-top:16px;align-items:center}
 .pagination button{background:#282828;color:#fff;border:none;padding:8px 16px;border-radius:4px;cursor:pointer}
 .pagination button:hover{background:#1DB954}
@@ -84,10 +85,16 @@ tr{cursor:pointer}
   .dj-container{grid-template-columns:1fr}
   table,thead,tbody,th,td,tr{display:block}
   thead{display:none}
-  tr{background:#282828;margin-bottom:8px;border-radius:8px;padding:12px;border-bottom:none}
-  td{padding:2px 0;border:none;font-size:0.85em;display:flex;justify-content:space-between}
-  td:before{content:attr(data-label);color:#b3b3b3;font-weight:bold;margin-right:8px}
-  .art-cell{display:flex;justify-content:center}
+  tbody{display:flex;flex-direction:column;gap:8px}
+  tr{background:#282828;border-radius:8px;padding:0;border-bottom:none;display:grid;grid-template-columns:80px 1fr;grid-template-rows:auto;overflow:hidden;cursor:pointer}
+  .art-cell{grid-row:1/span 10;display:flex;align-items:center;justify-content:center;padding:0;background:#1a1a1a}
+  .art-cell img{width:80px!important;height:80px!important;border-radius:0!important;object-fit:cover}
+  .art-cell div{width:80px!important;height:80px!important;border-radius:0!important;font-size:28px!important}
+  td:not(.art-cell){padding:2px 12px;border:none;font-size:0.82em;display:flex;justify-content:space-between;align-items:baseline}
+  td:not(.art-cell):first-of-type{padding-top:8px}
+  td:not(.art-cell):last-child{padding-bottom:8px}
+  td:not(.art-cell):before{content:attr(data-label);color:#b3b3b3;font-weight:bold;margin-right:8px;flex-shrink:0;font-size:0.9em}
+  .album-sub{display:none}
   .controls{flex-direction:column}
   .controls input,.controls select{width:100%}
   .grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}
@@ -253,7 +260,7 @@ function renderTable(){
     var keyCam=(s.k||'')+(s.cm?' / '+s.cm:'');
     html+='<tr onclick="showModal('+s.n+')">';
     html+='<td class="art-cell">'+artImg(s,56)+'</td>';
-    html+='<td data-label="Title"><a href="'+spLink+'" target="_blank" onclick="event.stopPropagation()">'+esc(s.t)+'</a><div style="color:#b3b3b3;font-size:0.8em">'+esc(s.al)+'</div></td>';
+    html+='<td data-label="Title"><a href="'+spLink+'" target="_blank" onclick="event.stopPropagation()">'+esc(s.t)+'</a><span class="album-sub">'+esc(s.al)+'</span></td>';
     html+='<td data-label="Artist"><span class="artist-link" onclick="event.stopPropagation();filterByArtist(this.dataset.v)" data-v="'+esc(s.a)+'">'+esc(s.a)+'</span></td>';
     html+='<td data-label="BPM">'+(s.b||'')+'</td>';
     html+='<td data-label="Key">'+keyCam+'</td>';
