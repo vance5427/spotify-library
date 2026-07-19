@@ -371,20 +371,20 @@ let filtered = [...tracks];
 let activeFilterType = null;
 let activeFilterValue = null;
 
-function showSection(name, btn) {{
+function showSection(name, btn) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById('sec-' + name).classList.add('active');
   if (btn) btn.classList.add('active');
-}}
+}
 
-function esc(s) {{
+function esc(s) {
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}}
+}
 
-function renderTable(data) {{
+function renderTable(data) {
   const tb = document.getElementById('tbody');
-  const rows = data.map((t, i) => {{
+  const rows = data.map((t, i) => {
     const year = t.release_date ? t.release_date.substring(0,4) : '';
     const bpmStr = t.bpm ? '<span class="bpm">' + Math.round(t.bpm) + '</span>' : '';
     const genreStr = t.genre || '';
@@ -406,23 +406,23 @@ function renderTable(data) {{
         (genreStr ? '<span><span class="mlabel">Genre:</span> ' + esc(genreStr) + '</span>' : '') +
       '</td>' +
       '</tr>';
-  }}).join('');
+  }).join('');
   tb.innerHTML = rows;
   document.getElementById('count').textContent = 'Showing ' + data.length + ' of ' + tracks.length + ' songs';
   // Artist click handlers
-  tb.querySelectorAll('[data-artist-click]').forEach(el => {{
+  tb.querySelectorAll('[data-artist-click]').forEach(el => {
     el.addEventListener('click', () => filterByArtist(el.dataset.artistClick));
-  }});
+  });
   // DJ select handlers
-  tb.querySelectorAll('[data-dj-select]').forEach(el => {{
-    el.addEventListener('click', () => {{
+  tb.querySelectorAll('[data-dj-select]').forEach(el => {
+    el.addEventListener('click', () => {
       const idx = parseInt(el.dataset.djSelect);
       selectForDJ(filtered[idx]);
-    }});
-  }});
-}}
+    });
+  });
+}
 
-function filterByArtist(name) {{
+function filterByArtist(name) {
   activeFilterType = 'artist';
   activeFilterValue = name;
   const af = document.getElementById('activeFilter');
@@ -430,9 +430,9 @@ function filterByArtist(name) {{
   af.textContent = '✕ ' + name;
   showSection('songs', document.querySelectorAll('.tab')[0]);
   filterTable();
-}}
+}
 
-function filterByAlbum(name) {{
+function filterByAlbum(name) {
   activeFilterType = 'album';
   activeFilterValue = name;
   const af = document.getElementById('activeFilter');
@@ -440,20 +440,20 @@ function filterByAlbum(name) {{
   af.textContent = '✕ ' + name;
   showSection('songs', document.querySelectorAll('.tab')[0]);
   filterTable();
-}}
+}
 
-function clearFilter() {{
+function clearFilter() {
   activeFilterType = null;
   activeFilterValue = null;
   document.getElementById('activeFilter').style.display = 'none';
   filterTable();
-}}
+}
 
-function filterTable() {{
+function filterTable() {
   const q = document.getElementById('search').value.toLowerCase();
   const decade = document.getElementById('decadeFilter').value;
   const genre = document.getElementById('genreFilter').value.toLowerCase();
-  filtered = tracks.filter(t => {{
+  filtered = tracks.filter(t => {
     const matchQ = !q || t.title.toLowerCase().includes(q) || t.artist.toLowerCase().includes(q) || t.album.toLowerCase().includes(q) || (t.genre && t.genre.toLowerCase().includes(q));
     const matchD = !decade || (t.release_date && t.release_date.substring(0,3) + '0s' === decade);
     const matchG = !genre || (t.genre && t.genre.toLowerCase().includes(genre));
@@ -461,14 +461,14 @@ function filterTable() {{
     if (activeFilterType === 'artist') matchFilter = t.artist.includes(activeFilterValue);
     if (activeFilterType === 'album') matchFilter = t.album === activeFilterValue;
     return matchQ && matchD && matchG && matchFilter;
-  }});
+  });
   sortTable();
-}}
+}
 
-function sortTable() {{
+function sortTable() {
   const sort = document.getElementById('sortBy').value;
-  filtered.sort((a, b) => {{
-    switch(sort) {{
+  filtered.sort((a, b) => {
+    switch(sort) {
       case 'num_desc': return b.num - a.num;
       case 'num_asc': return a.num - b.num;
       case 'added_desc': return (b.added_at||'').localeCompare(a.added_at||'');
@@ -480,17 +480,17 @@ function sortTable() {{
       case 'pop_desc': return (b.popularity||0) - (a.popularity||0);
       case 'bpm_asc': return (a.bpm||999) - (b.bpm||999);
       case 'bpm_desc': return (b.bpm||0) - (a.bpm||0);
-    }}
-  }});
+    }
+  });
   renderTable(filtered);
-}}
+}
 
 // DJ MIXER
-function selectForDJ(song) {{
-  if (!song.bpm) {{
+function selectForDJ(song) {
+  if (!song.bpm) {
     alert('This song has no BPM data — can\'t find matches. Try a song with BPM.');
     return;
-  }}
+  }
   showSection('dj', document.querySelectorAll('.tab')[1]);
   const sel = document.getElementById('djSelected');
   sel.innerHTML = '<div class="dj-song">' +
@@ -504,7 +504,7 @@ function selectForDJ(song) {{
   const bpm = song.bpm;
   const songGenres = song.genre ? song.genre.toLowerCase().split(', ').map(g => g.trim()) : [];
   
-  let matches = tracks.filter(t => t.bpm && t.track_id !== song.track_id).map(t => {{
+  let matches = tracks.filter(t => t.bpm && t.track_id !== song.track_id).map(t => {
     const diff = Math.abs(t.bpm - bpm);
     const halfDiff = Math.abs(t.bpm - bpm/2);
     const dblDiff = Math.abs(t.bpm - bpm*2);
@@ -515,23 +515,23 @@ function selectForDJ(song) {{
     let reason = '';
     let cls = '';
     
-    if (diff <= 3) {{ score = diff; reason = 'Perfect BPM match'; cls = 'reason-perfect'; }}
-    else if (diff <= 7) {{ score = diff + 5; reason = 'Close BPM (±' + Math.round(diff) + ')'; cls = 'reason-good'; }}
-    else if (diff <= 15) {{ score = diff + 15; reason = 'Stretch (±' + Math.round(diff) + ' BPM)'; cls = 'reason-ok'; }}
-    else if (halfDiff <= 5) {{ score = halfDiff + 10; reason = 'Half-time match'; cls = 'reason-good'; }}
-    else if (dblDiff <= 5) {{ score = dblDiff + 10; reason = 'Double-time match'; cls = 'reason-good'; }}
-    else {{ score = 200; }}
+    if (diff <= 3) { score = diff; reason = 'Perfect BPM match'; cls = 'reason-perfect'; }
+    else if (diff <= 7) { score = diff + 5; reason = 'Close BPM (±' + Math.round(diff) + ')'; cls = 'reason-good'; }
+    else if (diff <= 15) { score = diff + 15; reason = 'Stretch (±' + Math.round(diff) + ' BPM)'; cls = 'reason-ok'; }
+    else if (halfDiff <= 5) { score = halfDiff + 10; reason = 'Half-time match'; cls = 'reason-good'; }
+    else if (dblDiff <= 5) { score = dblDiff + 10; reason = 'Double-time match'; cls = 'reason-good'; }
+    else { score = 200; }
     
-    if (genreMatch && score < 200) {{ score -= 3; reason += ' + same genre'; }}
+    if (genreMatch && score < 200) { score -= 3; reason += ' + same genre'; }
     
-    return {{ ...t, score, reason, cls }};
-  }}).filter(m => m.score < 50).sort((a,b) => a.score - b.score).slice(0, 20);
+    return { ...t, score, reason, cls };
+  }).filter(m => m.score < 50).sort((a,b) => a.score - b.score).slice(0, 20);
   
   const mc = document.getElementById('djMatches');
-  if (matches.length === 0) {{
+  if (matches.length === 0) {
     mc.innerHTML = '<p style="color:#888">No BPM matches found. Need more songs with BPM data.</p>';
     return;
-  }}
+  }
   
   mc.innerHTML = '<h3>Top ' + matches.length + ' Mix Matches</h3>' +
     matches.map(m => 
@@ -544,15 +544,15 @@ function selectForDJ(song) {{
         '</div>' +
       '</div>'
     ).join('');
-}}
+}
 
 // Chip click handlers
-document.querySelectorAll('.artist-chip[data-artist]').forEach(el => {{
+document.querySelectorAll('.artist-chip[data-artist]').forEach(el => {
   el.addEventListener('click', () => filterByArtist(el.dataset.artist));
-}});
-document.querySelectorAll('.album-chip[data-album]').forEach(el => {{
+});
+document.querySelectorAll('.album-chip[data-album]').forEach(el => {
   el.addEventListener('click', () => filterByAlbum(el.dataset.album));
-}});
+});
 
 // Default sort
 document.getElementById('sortBy').value = 'num_desc';
