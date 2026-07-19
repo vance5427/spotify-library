@@ -242,7 +242,7 @@ function clearArtistFilter(){artistFilter='';albumFilter='';applyFilters();}
 function esc(s){if(!s)return'';var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 function renderTable(){
   var start=page*perPage,end=Math.min(start+perPage,filtered.length);
-  var html='<table><thead><tr><th onclick="setSort(\'n\')">Song #</th><th>Art</th><th onclick="setSort(\'t\')">Title</th><th onclick="setSort(\'a\')">Artist</th><th>Album</th><th>Genre</th><th>Key</th><th onclick="setSort(\'b\')">BPM</th><th onclick="setSort(\'y\')">Year</th><th>Duration</th><th onclick="setSort(\'ad\')">Added</th><th>Language</th></tr></thead><tbody>';
+  var html='<table><thead><tr><th onclick="setSort(\'n\')">#</th><th>Art</th><th onclick="setSort(\'t\')">Title</th><th onclick="setSort(\'a\')">Artist</th><th>Album</th><th>Genre</th><th>Key</th><th onclick="setSort(\'b\')">BPM</th><th onclick="setSort(\'dc\')">Dance</th><th onclick="setSort(\'ac\')">Acoustic</th><th onclick="setSort(\'y\')">Year</th><th>Dur</th><th onclick="setSort(\'ad\')">Added</th><th>Lang</th><th>Country</th></tr></thead><tbody>';
   for(var i=start;i<end;i++){
     var s=filtered[i];
     var img=s.i?'<img src="'+coverUrl(s.i,56)+'" width="40" height="40" loading="lazy" alt="">':'';
@@ -257,10 +257,13 @@ function renderTable(){
     html+='<td data-label="Genre">'+esc(s.g||'')+'</td>';
     html+='<td data-label="Key">'+keyCam+'</td>';
     html+='<td data-label="BPM">'+(s.b||'')+'</td>';
+    html+='<td data-label="Dance">'+(s.dc!=null?s.dc:'')+'</td>';
+    html+='<td data-label="Acoustic">'+(s.ac!=null?s.ac:'')+'</td>';
     html+='<td data-label="Year">'+(s.y||'')+'</td>';
-    html+='<td data-label="Duration">'+(s.d||'')+'</td>';
+    html+='<td data-label="Dur">'+(s.d||'')+'</td>';
     html+='<td data-label="Added">'+(s.ad||'')+'</td>';
-    html+='<td data-label="Language">'+(s.lang||'')+'</td>';
+    html+='<td data-label="Lang">'+(s.lang||'')+'</td>';
+    html+='<td data-label="Country">'+(s.ctry||'')+'</td>';
     html+='</tr>';
   }
   html+='</tbody></table>';
@@ -309,7 +312,7 @@ function showModal(num){
   html+='<a href="https://en.wikipedia.org/wiki/Special:Search?search='+encodeURIComponent(s.t+' '+s.a)+'" target="_blank">📖 Wikipedia</a>';
   html+='<a href="https://www.youtube.com/results?search_query='+encodeURIComponent(s.t+' '+s.a)+'" target="_blank">▶️ YouTube</a>';
   html+='<a href="https://genius.com/search?q='+encodeURIComponent(s.t+' '+s.a)+'" target="_blank">📝 Genius Lyrics</a>';
-  if(s.b&&s.cm)html+='<a href="#" onclick="event.preventDefault();closeModal();switchTab(&quot;dj&quot;);djSelectSong('+s.n+')">🎧 DJ Mix</a>';
+  if(s.b||s.cm)html+='<a href="#" onclick="event.preventDefault();closeModal();switchTab(\'dj\');djSelectSong('+s.n+')">🎧 DJ Mix</a>';
   html+='</div>';
   document.getElementById('modal-content').innerHTML=html;
   document.getElementById('modal').classList.add('show');
