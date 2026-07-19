@@ -77,6 +77,29 @@ tr:hover{background:#282828}
   .tab{padding:10px 14px;font-size:13px}
 }
 .mobile-cards{display:none}
+/* Song Detail Modal */
+.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.8);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal{background:#282828;border-radius:16px;max-width:500px;width:100%;max-height:90vh;overflow-y:auto;position:relative}
+.modal-close{position:absolute;top:12px;right:16px;font-size:24px;cursor:pointer;color:#b3b3b3;z-index:1}
+.modal-close:hover{color:#fff}
+.modal-hero{display:flex;gap:20px;padding:24px;background:linear-gradient(180deg,#333 0%,#282828 100%);border-radius:16px 16px 0 0}
+.modal-hero img{width:120px;height:120px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.modal-hero .mh-info{flex:1;display:flex;flex-direction:column;justify-content:center}
+.modal-hero .mh-title{font-size:22px;font-weight:700;margin-bottom:6px}
+.modal-hero .mh-artist{font-size:15px;color:#b3b3b3;margin-bottom:4px}
+.modal-hero .mh-album{font-size:13px;color:#888;font-style:italic}
+.modal-body{padding:0 24px 24px}
+.modal-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
+.modal-field{background:#1a1a1a;border-radius:8px;padding:10px 12px}
+.modal-field .label{font-size:11px;color:#888;text-transform:uppercase;margin-bottom:2px}
+.modal-field .value{font-size:15px;font-weight:600}
+.modal-links{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.modal-links a{display:inline-flex;align-items:center;gap:6px;background:#333;color:#fff;padding:8px 14px;border-radius:20px;font-size:13px;font-weight:500;text-decoration:none;transition:.2s}
+.modal-links a:hover{background:#1DB954;color:#000;text-decoration:none}
+@media(max-width:768px){
+  .modal-hero{flex-direction:column;align-items:center;text-align:center}
+  .modal-fields{grid-template-columns:1fr 1fr}
+}
 </style>
 </head>
 <body>
@@ -137,6 +160,7 @@ tr:hover{background:#282828}
 <div class="tab-content" id="tab-artists"><div class="grid" id="artistGrid"></div></div>
 <div class="tab-content" id="tab-albums"><div class="grid" id="albumGrid"></div></div>
 </div>
+<div id="songModal"></div>
 <script>
 const CDN='https://cdn-images.dzcdn.net/images/';
 const SP='https://open.spotify.com/track/';
@@ -170,13 +194,15 @@ topGenres.forEach(([g,c])=>{const o=document.createElement('option');o.value=g;o
 
 function applyFilters(){
   const q=document.getElementById('search').value.toLowerCase();
-  const dec=decSel.value;
-  const gen=genSel.value;
+  const dec=document.getElementById('decadeFilter').value;
+  const gen=document.getElementById('genreFilter').value.toLowerCase();
+  const af=window._albumFilter||'';
   filtered=D.filter(s=>{
-    if(q&&!(s.t||'').toLowerCase().includes(q)&&!(s.a||'').toLowerCase().includes(q)&&!(s.al||'').toLowerCase().includes(q))return false;
-    if(dec&&(!s.y||Math.floor(parseInt(s.y)/10)*10+'s'!==dec))return false;
-    if(gen&&(!s.g||!s.g.toLowerCase().includes(gen.toLowerCase())))return false;
+    if(q&&!(s.t||'').toLowerCase().includes(q)&&!(s.a||'').toLowerCase().includes(q)&&!(s.al||'').toLowerCase().includes(q)&&!(s.g||'').toLowerCase().includes(q))return false;
+    if(dec){const d=parseInt(dec);if(!s.y||parseInt(s.y)<d||parseInt(s.y)>=d+10)return false}
+    if(gen&&!(s.g||'').toLowerCase().includes(gen))return false;
     if(artistFilter&&s.a!==artistFilter)return false;
+    if(af&&s.al!==af)return false;
     return true;
   });
   sortFiltered();
@@ -209,8 +235,8 @@ function render(){
     const art=s.im?`<img src="${esc(coverUrl(s.im,56))}" loading="lazy" alt="">`:'<span class="no-art"></span>';
     const link=s.u?`<a href="${esc(spUrl(s.u))}" target="_blank">${esc(s.t)}</a>`:esc(s.t);
     const keyInfo=s.cm?`${esc(s.k||'')} <span style="color:#666">${esc(s.cm)}</span>`:(s.k?esc(s.k):'');
-    return `<tr><td>${s.n}</td><td class="art-cell">${art}</td><td>${link}</td>
-    <td><span class="artist-link" onclick="setArtistFilter('${esc(s.a).replace(/'/g,"\\'")}')">${esc(s.a)}</span></td>
+    return `<tr style="cursor:pointer" onclick="showSongDetail(${s.n})"><td>${s.n}</td><td class="art-cell">${art}</td><td>${link}</td>
+    <td><span class="artist-link" onclick="event.stopPropagation();setArtistFilter('${esc(s.a).replace(/'/g,"\\\\'")}')">${esc(s.a)}</span></td>
     <td>${esc(s.al)}</td><td style="font-size:11px;color:#888">${esc(s.g)}</td><td>${keyInfo}</td>
     <td>${s.b||''}</td><td>${s.y||''}</td><td>${esc(s.d)}</td><td style="font-size:11px">${esc(s.ad)}</td></tr>`;
   }).join('');
@@ -220,10 +246,10 @@ function render(){
   mc.innerHTML=slice.map(s=>{
     const art=s.im?coverUrl(s.im,56):'';
     const img=art?`<img src="${esc(art)}" loading="lazy" alt="">`:'<div class="no-art" style="width:56px;height:56px"></div>';
-    return `<div class="mobile-card">${img}<div class="mc-info">
-    <div class="mc-title">${s.u?`<a href="${esc(spUrl(s.u))}" target="_blank">${esc(s.t)}</a>`:esc(s.t)}</div>
+    return `<div class="mobile-card" onclick="showSongDetail(${s.n})" style="cursor:pointer">${img}<div class="mc-info">
+    <div class="mc-title">${s.u?`<a href="${esc(spUrl(s.u))}" target="_blank" onclick="event.stopPropagation()">${esc(s.t)}</a>`:esc(s.t)}</div>
     <div class="mc-artist">${esc(s.a)}</div>
-    <div class="mc-meta"><span>#${s.n}</span><span>${s.y||''}</span>${s.b?`<span>${s.b} BPM</span>`:''}${s.cm?`<span>${esc(s.cm)}</span>`:''}${s.d?`<span>${esc(s.d)}</span>`:''}</div>
+    <div class="mc-meta"><span>#${s.n}</span><span>${s.y||''}</span>${s.b?`<span>${s.b} BPM</span>`:''}${s.cm?`<span>${esc(s.cm)}</span>`:''}${s.d?`<span>${esc(s.d)}</span>`:''}${s.ad?`<span>Added ${s.ad}</span>`:''}</div>
     </div></div>`;
   }).join('');
 
@@ -248,7 +274,7 @@ function setArtistFilter(a){
   document.getElementById('songControls').style.display='flex';
   applyFilters();
 }
-function clearArtistFilter(){setArtistFilter('')}
+function clearArtistFilter(){window._albumFilter='';setArtistFilter('')}
 
 document.getElementById('search').addEventListener('input',applyFilters);
 decSel.addEventListener('change',applyFilters);
@@ -290,7 +316,7 @@ function renderAlbums(){
   const sorted=Object.values(albs).sort((a,b)=>b.count-a.count);
   document.getElementById('albumGrid').innerHTML=sorted.map(al=>{
     const img=al.art?`<img src="${esc(al.art)}" loading="lazy" alt="">`:'<div style="width:120px;height:120px;background:#444;border-radius:8px;margin:0 auto 8px"></div>';
-    return `<div class="grid-card album" onclick="setArtistFilter('${esc(al.artist).replace(/'/g,"\\'")}')">${img}<div class="name" title="${esc(al.name)}">${esc(al.name)}</div><div class="sub">${esc(al.artist)}</div><div class="sub">${al.year||''} · ${al.count} song${al.count>1?'s':''}</div></div>`;
+    return `<div class="grid-card album" onclick="setAlbumFilter('${esc(al.name).replace(/'/g,"\\\\'")}')">${img}<div class="name" title="${esc(al.name)}">${esc(al.name)}</div><div class="sub">${esc(al.artist)}</div><div class="sub">${al.year||''} · ${al.count} song${al.count>1?'s':''}</div></div>`;
   }).join('');
 }
 
@@ -361,6 +387,67 @@ window.selectDJ=function(num){
       <div class="compat"><span class="badge badge-${cls}">${m.reasons.join(', ')}</span></div>
     </div>`;
   }).join('');
+};
+
+// Song Detail Modal
+window.showSongDetail=function(num){
+  const s=D.find(t=>t.n===num);if(!s)return;
+  const artUrl=s.ix?coverUrl(s.ix,500):(s.im?coverUrl(s.im,250):'');
+  const artistArt=s.ai?artistUrl(s.ai):'';
+  const gq=encodeURIComponent(s.t+' '+s.a);
+  const wq=encodeURIComponent(s.t+' '+s.a+' song');
+  const ytq=encodeURIComponent(s.t+' '+s.a);
+  const modal=document.getElementById('songModal');
+  modal.innerHTML=`<div class="modal-overlay" onclick="if(event.target===this)closeSongModal()">
+    <div class="modal">
+      <span class="modal-close" onclick="closeSongModal()">✕</span>
+      <div class="modal-hero">
+        ${artUrl?`<img src="${esc(artUrl)}" loading="lazy" alt="">`:
+          `<div style="width:120px;height:120px;background:#444;border-radius:8px;flex-shrink:0"></div>`}
+        <div class="mh-info">
+          <div class="mh-title">${esc(s.t)}</div>
+          <div class="mh-artist">${esc(s.a)}</div>
+          <div class="mh-album">${esc(s.al)} ${s.y?' · '+s.y:''}</div>
+        </div>
+      </div>
+      <div class="modal-body">
+        <div class="modal-fields">
+          ${s.b?`<div class="modal-field"><div class="label">BPM</div><div class="value" style="color:#1DB954">${s.b}</div></div>`:''}
+          ${s.cm?`<div class="modal-field"><div class="label">Key / Camelot</div><div class="value" style="color:#ff6b9d">${esc(s.k||'')} (${esc(s.cm)})</div></div>`:''}
+          ${s.g?`<div class="modal-field"><div class="label">Genre</div><div class="value" style="font-size:12px">${esc(s.g)}</div></div>`:''}
+          <div class="modal-field"><div class="label">Duration</div><div class="value">${esc(s.d)}</div></div>
+          <div class="modal-field"><div class="label">Song #</div><div class="value">${s.n}</div></div>
+          ${s.ad?`<div class="modal-field"><div class="label">Added</div><div class="value">${esc(s.ad)}</div></div>`:''}
+          ${s.y?`<div class="modal-field"><div class="label">Released</div><div class="value">${s.y}</div></div>`:''}
+          ${s.dc?`<div class="modal-field"><div class="label">Danceability</div><div class="value">${s.dc}/100</div></div>`:''}
+        </div>
+        <div class="modal-links">
+          ${s.u?`<a href="${esc(spUrl(s.u))}" target="_blank">🎵 Spotify</a>`:''}
+          <a href="https://www.google.com/search?q=${gq}" target="_blank">🔍 Google</a>
+          <a href="https://en.wikipedia.org/w/index.php?search=${wq}" target="_blank">📖 Wikipedia</a>
+          <a href="https://www.youtube.com/results?search_query=${ytq}" target="_blank">▶️ YouTube</a>
+          <a href="https://genius.com/search?q=${gq}" target="_blank">📝 Genius Lyrics</a>
+          ${s.b?`<a href="#" onclick="event.preventDefault();closeSongModal();selectDJ(${s.n})">🎧 DJ Mix</a>`:''}
+        </div>
+      </div>
+    </div>
+  </div>`;
+};
+window.closeSongModal=function(){document.getElementById('songModal').innerHTML='';};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSongModal()});
+
+// Album filter
+window.setAlbumFilter=function(albumName){
+  artistFilter='';
+  document.getElementById('filterTag').style.display='inline-flex';
+  document.getElementById('filterTag').innerHTML=`<span class="filter-tag">💿 ${esc(albumName)} <span class="x" onclick="clearArtistFilter()">✕</span></span>`;
+  document.querySelectorAll('.tab,.tab-content').forEach(e=>e.classList.remove('active'));
+  document.querySelector('[data-tab="songs"]').classList.add('active');
+  document.getElementById('tab-songs').classList.add('active');
+  document.getElementById('songControls').style.display='flex';
+  // Filter by album
+  window._albumFilter=albumName;
+  applyFilters();
 };
 
 // Initial render
