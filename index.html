@@ -163,7 +163,7 @@ tr{cursor:pointer}
 </div>
 <div class="dj-panel">
 <h3>🎵 Compatible Tracks</h3>
-<div id="dj-compat" class="compat-list"><p style="color:#b3b3b3">Select a track to find compatible songs</p></div>
+<div id="dj-compat" class="compat-list"><p style="color:#b3b3b3">Select a track to find Camelot Wheel-compatible songs</p></div>
 </div>
 </div>
 </div>
@@ -441,11 +441,14 @@ function djSelectSong(num){
 }
 function camelotCompat(cm1,cm2){
   if(!cm1||!cm2)return null;
-  if(cm1===cm2)return'perfect';
-  var n1=parseInt(cm1),l1=cm1.slice(-1);
-  var n2=parseInt(cm2),l2=cm2.slice(-1);
-  if(l1===l2){var diff=Math.abs(n1-n2);if(diff===1||(n1===1&&n2===12)||(n1===12&&n2===1))return'good';}
-  if(n1===n2&&l1!==l2)return'good';
+  cm1=String(cm1).trim().toUpperCase();cm2=String(cm2).trim().toUpperCase();
+  if(!/^([1-9]|1[0-2])[AB]$/.test(cm1)||!/^([1-9]|1[0-2])[AB]$/.test(cm2))return null;
+  if(cm1===cm2)return{type:'perfect',label:'Same key',rank:0};
+  var n1=parseInt(cm1,10),l1=cm1.slice(-1);
+  var n2=parseInt(cm2,10),l2=cm2.slice(-1);
+  var wheelDistance=Math.min(Math.abs(n1-n2),12-Math.abs(n1-n2));
+  if(l1===l2&&wheelDistance===1)return{type:'good',label:'Adjacent key',rank:1};
+  if(n1===n2&&l1!==l2)return{type:'good',label:'Relative major/minor',rank:1};
   return null;
 }
 function findCompatible(s){
@@ -454,21 +457,20 @@ function findCompatible(s){
   D.forEach(function(t){
     if(t.n===s.n||!t.b||!t.cm)return;
     if(Math.abs(t.b-s.b)>10)return;
-    var compat=camelotCompat(s.cm,t.cm);
-    if(!compat)return;
-    results.push({song:t,compat:compat,bpmDiff:Math.abs(t.b-s.b)});
+    var relation=camelotCompat(s.cm,t.cm);
+    if(!relation)return;
+    results.push({song:t,relation:relation,bpmDiff:Math.abs(t.b-s.b)});
   });
   results.sort(function(a,b){
-    if(a.compat==='perfect'&&b.compat!=='perfect')return-1;
-    if(b.compat==='perfect'&&a.compat!=='perfect')return 1;
+    if(a.relation.rank!==b.relation.rank)return a.relation.rank-b.relation.rank;
     return a.bpmDiff-b.bpmDiff;
   });
-  var html='<p style="color:#b3b3b3;margin-bottom:8px">'+results.length+' compatible tracks found</p>';
+  var html='<p style="color:#b3b3b3;margin-bottom:8px">'+results.length+' Camelot-compatible tracks · same key first, then ±1 wheel step or relative major/minor</p>';
   results.forEach(function(r){
     var t=r.song;
     html+='<div class="compat-item" onclick="showModal('+t.n+')">';
     html+=artImg(t,56);
-    html+='<span class="compat-badge compat-'+r.compat+'">'+r.compat+'</span>';
+    html+='<span class="compat-badge compat-'+r.relation.type+'">'+r.relation.label+'</span>';
     html+='<div><div style="font-weight:bold">'+esc(t.t)+'</div>';
     html+='<div style="color:#b3b3b3;font-size:0.8em">'+esc(t.a)+' · '+t.b+' BPM · '+t.cm+'</div></div></div>';
   });
